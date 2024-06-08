@@ -1,0 +1,3 @@
+0 Average
+1 Vertical
+2 Horizontal
