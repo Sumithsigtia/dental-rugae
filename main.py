@@ -46,4 +46,4 @@ if uploaded_file is not None:
 
     # Display the result
     st.write(f"**Predicted Class:** {predicted_class}")
-    st.write(f"**Confidence:** {confidence:.2f}%")  # Display confidence as a percentage
+    st.write(f"**Confidence:** {confidence:.2f}") 
