@@ -1,54 +1,48 @@
 import streamlit as st
 from PIL import Image
 import numpy as np
-from tensorflow.keras.preprocessing import image as keras_image
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 
+# Load the model
+model = tf.keras.models.load_model('keras_model.h5')
 
-# Function to load and preprocess image
-def preprocess_image(img_path, target_size):
-    img = Image.open(img_path)
-    img = img.resize(target_size)
-    img = keras_image.img_to_array(img)
-    img = np.expand_dims(img, axis=0)
-    img /= 255.0
+# Define a function to preprocess the image
+def preprocess_image(image):
+    img = image.resize((224, 224))  # Resize to match model input size
+    img = np.array(img) / 255.0     # Normalize
+    img = np.expand_dims(img, axis=0)  # Add batch dimension
     return img
 
-# Function to make prediction
-def predict_image(img, model, categories):
-    prediction = model.predict(img)
-    predicted_class_index = np.argmax(prediction)
-    predicted_class = categories[predicted_class_index]
-    confidence = prediction[0][predicted_class_index] * 100
+# Define a function to make predictions
+def predict(image):
+    img = preprocess_image(image)
+    predictions = model.predict(img)
+    confidence = np.max(predictions)
+    classes = ['Average', 'Horizontal', 'Vertical']
+    predicted_class = classes[np.argmax(predictions)]
     return predicted_class, confidence
 
-# Load the trained model
-model = load_model('keras_model.h5')
-
-# Compile the model manually
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-
-# Define categories
-categories = ['average', 'horizontal', 'vertical']
-
 # Streamlit app
-st.title('Dental Image Classifier')
-st.write('Upload a dental image and let us classify it for you!')
+st.title("Dental Rugae Classification")
+st.write("Upload a dental rugae image")
 
-# Upload image
+# File uploader
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Display uploaded image
+    # Load the image
     image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image', use_column_width=True)
 
-    # Preprocess image
-    img = preprocess_image(uploaded_file, (224,224))
+    # Display the uploaded image
+    st.image(image, caption='Uploaded Image', use_column_width=True)
+    st.write("")
 
     # Make prediction
-    predicted_class, confidence = predict_image(img, model, categories)
+    predicted_class, confidence = predict(image)
 
-    # Display prediction
-    st.write('Predicted Class:', predicted_class)
-    st.write('Confidence:', f'{confidence:.2f}%')
+    # Display the result
+    st.write(f"**Predicted Class:** {predicted_class}")
+    st.write(f"**Confidence:** {confidence:.2f}")
+
+    # Confidence score bar
+    st.progress(confidence)
