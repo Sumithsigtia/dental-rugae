@@ -25,6 +25,9 @@ def predict_image(img, model, categories):
 # Load the trained model
 model = load_model('keras_model.h5')
 
+# Compile the model manually
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
 # Define categories
 categories = ['average', 'horizontal', 'vertical']
 
