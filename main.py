@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 from tensorflow.keras.preprocessing import image as keras_image
+from tensorflow.keras.models import load_model
 
 # Function to load and preprocess image
 def preprocess_image(img_path, target_size):
