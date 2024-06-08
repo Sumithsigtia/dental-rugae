@@ -21,7 +21,7 @@ def predict(image):
     confidence = np.max(predictions)
     classes = ['Average', 'Horizontal', 'Vertical']
     predicted_class = classes[np.argmax(predictions)]
-    return predicted_class, confidence
+    return predicted_class, confidence * 100  # Convert confidence to percentage
 
 # Streamlit app
 st.title("Dental Rugae Classification")
@@ -43,4 +43,4 @@ if uploaded_file is not None:
 
     # Display the result
     st.write(f"**Predicted Class:** {predicted_class}")
-    st.write(f"**Confidence:** {confidence:.2f}")
+    st.write(f"**Confidence:** {confidence:.2f}%")  # Display confidence as a percentage
