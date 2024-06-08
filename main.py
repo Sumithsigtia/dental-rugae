@@ -12,6 +12,12 @@ def preprocess_image(img_path, target_size):
     img /= 255.0
     return img
 
+# Function to resize and display image
+def resize_and_display_image(img_path, target_size):
+    img = Image.open(img_path)
+    img = img.resize(target_size)
+    st.image(img, caption='Resized Image', use_column_width=True)
+
 # Function to make prediction
 def predict_image(img, model, categories):
     prediction = model.predict(img)
@@ -21,7 +27,7 @@ def predict_image(img, model, categories):
     return predicted_class, confidence
 
 # Load the trained model
-model = load_model('/content/drive/MyDrive/dental/model.h5')
+model = load_model('keras_model.h5')
 
 # Define categories
 categories = ['average', 'horizontal', 'vertical']
@@ -39,7 +45,10 @@ if uploaded_file is not None:
     st.image(image, caption='Uploaded Image', use_column_width=True)
 
     # Preprocess image
-    img = preprocess_image(uploaded_file, (128, 128))
+    img = preprocess_image(uploaded_file, (224, 224))
+
+    # Resize and display image
+    resize_and_display_image(uploaded_file, (224, 224))
 
     # Make prediction
     predicted_class, confidence = predict_image(img, model, categories)
