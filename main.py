@@ -44,8 +44,3 @@ if uploaded_file is not None:
     # Display the result
     st.write(f"**Predicted Class:** {predicted_class}")
     st.write(f"**Confidence:** {confidence:.2f}")
-
-    # Confidence score bar
-    st.progress(confidence)
-
-# Run the app with `streamlit run app.py`
