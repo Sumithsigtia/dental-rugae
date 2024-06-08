@@ -41,7 +41,7 @@ if uploaded_file is not None:
     st.image(image, caption='Uploaded Image', use_column_width=True)
 
     # Preprocess image
-    img = preprocess_image(uploaded_file, (128, 128))
+    img = preprocess_image(uploaded_file, (224,224))
 
     # Make prediction
     predicted_class, confidence = predict_image(img, model, categories)
