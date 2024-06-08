@@ -1,28 +1,27 @@
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
-import tensorflow as tf
+from keras.models import load_model
 
-# Load the model without compiling
-model = tf.keras.models.load_model('keras_model.h5', compile=False)
+# Load the model
+model = load_model("keras_Model.h5", compile=False)
 
-# Define a function to preprocess the image
+# Load the labels
+class_names = open("labels.txt", "r").readlines()
+
+# Create the array of the right shape to feed into the keras model
+data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+
+# Function to preprocess the image
 def preprocess_image(image):
-    img = image.resize((224, 224))  # Resize to match model input size
-    img = img.convert('RGB')  # Ensure image is in RGB mode
-    img = np.array(img) / 255.0  # Normalize to [0, 1]
-    img = np.expand_dims(img, axis=0)  # Add batch dimension
-    return img
-
-# Define a function to make predictions
-def predict(image):
-    img = preprocess_image(image)
-    predictions = model.predict(img)
-    confidence = np.max(predictions)
-    # Update classes to match the Teachable Machine classes
-    classes = ['Average', 'Horizontal', 'Vertical']
-    predicted_class = classes[np.argmax(predictions)]
-    return predicted_class, confidence * 100  # Convert confidence to percentage
+    # Resize and crop the image
+    image = ImageOps.fit(image, (224, 224), Image.LANCZOS)
+    # Convert to numpy array and normalize
+    image_array = np.asarray(image)
+    normalized_image_array = (image_array.astype(np.float32) / 127.5) - 1
+    # Load the image into the array
+    data[0] = normalized_image_array
+    return data
 
 # Streamlit app
 st.title("Dental Rugae Classification")
@@ -33,15 +32,20 @@ uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png
 
 if uploaded_file is not None:
     # Load the image
-    image = Image.open(uploaded_file)
-
+    image = Image.open(uploaded_file).convert("RGB")
+    
     # Display the uploaded image
     st.image(image, caption='Uploaded Image', use_column_width=True)
-    st.write("")
-
-    # Make prediction
-    predicted_class, confidence = predict(image)
+    
+    # Preprocess the image
+    data = preprocess_image(image)
+    
+    # Predicts the model
+    prediction = model.predict(data)
+    index = np.argmax(prediction)
+    class_name = class_names[index]
+    confidence_score = prediction[0][index]
 
     # Display the result
-    st.write(f"**Predicted Class:** {predicted_class}")
-    st.write(f"**Confidence:** {confidence:.2f}%")  # Display confidence as a percentage
+    st.write(f"**Predicted Class:** {class_name[2:]}")
+    st.write(f"**Confidence Score:** {confidence_score}")
