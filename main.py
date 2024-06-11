@@ -1,17 +1,33 @@
-#import libraries
 import streamlit as st
 import numpy as np
-import cv2
 import tensorflow as tf
 from PIL import Image
+import cv2
+import tempfile
 
-# Load the trained TensorFlow model
-model_path = "keras_model.h5"
-model = tf.keras.models.load_model(model_path)
+# Load the model
+model = tf.keras.models.load_model('keras_model.h5')
 
-# Load the labels
-class_labels = open("labels.txt", "r").readlines()
-st.title("Dental Rugae Classification Web App")
+# Load class labels
+with open("labels.txt", "r") as file:
+    class_labels = [line.strip() for line in file.readlines()]
+
+# Define the function for image preprocessing
+def preprocess_image(image):
+    image = image.resize((224, 224))  # Resize to model input size
+    image = image.convert('RGB')  # Ensure image is in RGB mode
+    image_array = np.array(image) / 255.0  # Normalize to [0, 1]
+    image_array = np.expand_dims(image_array, axis=0)  # Add batch dimension
+    return image_array
+
+# Define the function to make predictions
+def predict(image):
+    processed_image = preprocess_image(image)
+    predictions = model.predict(processed_image)[0]  # Get the first (and only) prediction
+    return predictions
+
+# Streamlit app
+st.title("Dental Rugae Classification Test App")
 
 # Add an option to choose between image upload and camera capture
 option = st.sidebar.selectbox("Select an option", ("Upload Image", "Capture from Camera"))
@@ -23,58 +39,76 @@ if option == "Upload Image":
         image = Image.open(uploaded_image)
         st.image(image, caption="Uploaded Image", use_column_width=True)
 
-        # Preprocess the image
-        image = np.array(image.resize((224, 224))) / 255.0
-        image = np.expand_dims(image, axis=0)
+        predictions = predict(image)
 
-        # Make predictions
-        prediction = model.predict(image)
-        predicted_class_index = np.argmax(prediction)
+        # Display all class confidence scores
+        st.write("**Confidence Scores for All Classes:**")
+        for class_label, score in zip(class_labels, predictions):
+            st.write(f"{class_label}: {score:.2%}")
+
+        # Highlight the predicted class
+        predicted_class_index = np.argmax(predictions)
         predicted_class = class_labels[predicted_class_index]
-        confidence = prediction[0][predicted_class_index]
-
-        st.write(f"Predicted Class: {predicted_class}")
-        st.write(f"Confidence: {confidence:.2f}")  # Display confidence with 2 decimal places
+        confidence = predictions[predicted_class_index]
+        st.write(f"\n**Predicted Class:** {predicted_class}")
+        st.write(f"**Confidence:** {confidence:.2%}")
 
 elif option == "Capture from Camera":
     st.write("Camera Capture Mode")
 
-    # Open the camera
+    # Capture image from camera
     cap = cv2.VideoCapture(0)  # 0 indicates the default camera
 
     if not cap.isOpened():
         st.write("Error: Could not open camera.")
         st.stop()
 
-    stop_camera_button_key = "stop_camera_button"  # Unique key for the button
+    capture_button_key = "capture_button"
+    stop_button_key = "stop_camera_button"
 
+    placeholder = st.empty()
     while True:
         ret, frame = cap.read()
-
         if not ret:
             st.write("Error: Could not read frame from camera.")
             break
 
         # Display the captured frame
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        st.image(frame_rgb, channels="RGB", use_column_width=True, caption="Camera Capture")
+        placeholder.image(frame_rgb, channels="RGB", use_column_width=True, caption="Camera Capture")
 
-        # Preprocess the captured frame
-        resized_frame = cv2.resize(frame_rgb, (224, 224)) / 255.0
-        image = np.expand_dims(resized_frame, axis=0)
+        # Check for user input to capture image or stop camera
+        if st.button("Capture Image", key=capture_button_key):
+            # Save the captured frame to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmpfile:
+                cv2.imwrite(tmpfile.name, frame)
+                image = Image.open(tmpfile.name)
 
-        # Make predictions
-        prediction = model.predict(image)
-        predicted_class_index = np.argmax(prediction)
-        predicted_class = class_labels[predicted_class_index]
-        confidence = prediction[0][predicted_class_index]
+            # Display the captured image
+            placeholder.image(image, caption="Captured Image", use_column_width=True)
 
-        st.write(f"Predicted Class: {predicted_class}")
-        st.write(f"Confidence: {confidence:.2f}")  # Display confidence with 2 decimal places
+            predictions = predict(image)
 
-        # Check for user input to stop camera capture
-        if st.button("Stop Camera", key=stop_camera_button_key):
+            # Display all class confidence scores
+            st.write("**Confidence Scores for All Classes:**")
+            for class_label, score in zip(class_labels, predictions):
+                st.write(f"{class_label}: {score:.2%}")
+
+            # Highlight the predicted class
+            predicted_class_index = np.argmax(predictions)
+            predicted_class = class_labels[predicted_class_index]
+            confidence = predictions[predicted_class_index]
+            st.write(f"\n**Predicted Class:** {predicted_class}")
+            st.write(f"**Confidence:** {confidence:.2%}")
+
+            # Option to continue or stop camera
+            if st.button("Stop Camera", key=stop_button_key):
+                break
+
+        # Option to stop camera without capturing
+        if st.button("Stop Camera", key=f"{stop_button_key}_alt"):
             break
 
     # Release the camera
     cap.release()
+    placeholder.empty()
