@@ -31,9 +31,9 @@ st.title("Dental Rugae Classification Test App")
 
 # Add an option to choose between image upload and camera capture
 
-    uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
 
-    if uploaded_image is not None:
+if uploaded_image is not None:
         image = Image.open(uploaded_image)
         st.image(image, caption="Uploaded Image", use_column_width=True)
 
