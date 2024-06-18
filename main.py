@@ -34,9 +34,7 @@ def display_predictions(predictions):
     """
     st.write("**Confidence Scores for All Classes:**")
     for class_label, score in zip(class_labels, predictions):
-        percentage = int(score * 100)  # Convert to percentage
-        st.write(f"{class_label}: {score:.2%}")
-        st.progress(percentage)
+        st.progress(float(score), text=f"{class_label}: {score:.2%}")
 
     # Highlight the predicted class
     predicted_class_index = np.argmax(predictions)
