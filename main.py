@@ -12,9 +12,9 @@ with open("labels.txt", "r") as file:
 
 # Define conclusions for each class
 class_conclusions = {
-    "Average": "The average dental rugae pattern suggests a balanced face structure, typically characterized by well-proportioned facial features.",
-    "Horizontal": "A horizontal dental rugae pattern indicates a broader face with horizontal prominence, often associated with wider cheekbones and a more pronounced jawline.",
-    "Vertical": "A vertical dental rugae pattern corresponds to a longer face with vertical prominence, usually featuring a higher forehead and a longer chin."
+    "0 Average": "The average dental rugae pattern suggests a balanced face structure, typically characterized by well-proportioned facial features.",
+    "1 Horizontal": "A horizontal dental rugae pattern indicates a broader face with horizontal prominence, often associated with wider cheekbones and a more pronounced jawline.",
+    "2 Vertical": "A vertical dental rugae pattern corresponds to a longer face with vertical prominence, usually featuring a higher forehead and a longer chin."
 }
 
 def preprocess_image(image):
