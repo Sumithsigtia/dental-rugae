@@ -52,7 +52,7 @@ def display_predictions(predictions):
     st.write(f"**Confidence:** {confidence:.2%}")
 
     # Display the conclusion for the predicted class
-    conclusion = class_conclusions.get(predicted_class, "No conclusion available for this class.")
+    conclusion = class_conclusions.get(predicted_class)
     st.write(f"**Conclusion:** {conclusion}")
 
 # Streamlit app
