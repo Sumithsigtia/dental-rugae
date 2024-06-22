@@ -10,6 +10,13 @@ model = tf.keras.models.load_model('keras_model.h5')
 with open("labels.txt", "r") as file:
     class_labels = [line.strip() for line in file.readlines()]
 
+# Define conclusions for each class
+class_conclusions = {
+    "Average": "The average dental rugae pattern suggests a balanced face structure, typically characterized by well-proportioned facial features.",
+    "Horizontal": "A horizontal dental rugae pattern indicates a broader face with horizontal prominence, often associated with wider cheekbones and a more pronounced jawline.",
+    "Vertical": "A vertical dental rugae pattern corresponds to a longer face with vertical prominence, usually featuring a higher forehead and a longer chin."
+}
+
 def preprocess_image(image):
     """
     Preprocess the image for the model: resize, convert to RGB, normalize, and expand dimensions.
@@ -34,7 +41,8 @@ def display_predictions(predictions):
     """
     st.write("**Confidence Scores for All Classes:**")
     for class_label, score in zip(class_labels, predictions):
-        st.progress(float(score), text=f"{class_label}: {score:.2%}")
+        percentage = int(score * 100)  # Convert to percentage
+        st.progress(percentage, text=f"{class_label}: {score:.2%}")
 
     # Highlight the predicted class
     predicted_class_index = np.argmax(predictions)
@@ -42,6 +50,10 @@ def display_predictions(predictions):
     confidence = predictions[predicted_class_index]
     st.write(f"\n**Predicted Class:** {predicted_class}")
     st.write(f"**Confidence:** {confidence:.2%}")
+
+    # Display the conclusion for the predicted class
+    conclusion = class_conclusions.get(predicted_class, "No conclusion available for this class.")
+    st.write(f"**Conclusion:** {conclusion}")
 
 # Streamlit app
 st.title("Dental Rugae Classification Test App")
